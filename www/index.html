@@ -204,6 +204,12 @@ function createPostElement(post) {
                         (編集済み: ${formatTimestamp(post.updatedAt)})
                     </span>
                 ` : ''}
+                <div class="post-votes">
+                    <button class="btn-vote" onclick="votePost('${post.id}', 'like')">👍 グッド</button>
+                    <span id="like-count-${post.id}">${post.likes || 0}</span>
+                    <button class="btn-vote" onclick="votePost('${post.id}', 'dislike')">👎 バッド</button>
+                    <span id="dislike-count-${post.id}">${post.dislikes || 0}</span>
+                </div>
             </div>
         </div>
     `;
