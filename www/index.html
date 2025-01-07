@@ -210,9 +210,39 @@ function createPostElement(post) {
                     <button class="btn-vote" onclick="votePost('${post.id}', 'dislike')">👎 バッド</button>
                     <span id="dislike-count-${post.id}">${post.dislikes || 0}</span>
                 </div>
+                <div class="post-footer">
+                <button class="btn-quote" onclick="quotePost('${post.id}')">引用して投稿</button>
+                <span class="post-time">${formatTimestamp(post.timestamp)}</span>
+                ${post.updatedAt ? `<span class="post-updated">(編集済み: ${formatTimestamp(post.updatedAt)})</span>` : ''}
             </div>
         </div>
     `;
+}
+
+//投稿に対する評価の表示処理
+function votePost(postId, type) {
+    const postRef = postsRef.child(postId);
+    
+    postRef.transaction((post) => {
+        if (post) {
+            if (type === 'like') {
+                post.likes = (post.likes || 0) + 1;
+            } else if (type === 'dislike') {
+                post.dislikes = (post.dislikes || 0) + 1;
+            }
+        }
+        return post;
+    })
+    .then(() => {
+        if (type === 'like') {
+                showMessage('グッド！');
+            } else if (type === 'dislike') {
+                showMessage('バッド！');
+            }
+    })
+    .catch((error) => {
+        showMessage('評価に失敗しました：' + error.message, 'error');
+    });
 }
 
 // 投稿の表示処理
@@ -345,6 +375,19 @@ function startEdit(postId) {
     $('#editContent').val(content);
     updateCharacterCount('editContent', 'editContentCount', 1000);
     showModal('editModal');
+}
+
+function quotePost(postId) {
+    const postContent = $(`#post-${postId}`).find('.post-content').text();
+    const quotedContent = `> ${postContent}\n\n`; // Markdown形式で引用
+    const contentInput = $('#contentInput');
+    
+    // 引用内容を投稿フォームに挿入
+    contentInput.val(quotedContent + contentInput.val());
+    updateCharacterCount('contentInput', 'contentCount', 1000);
+
+    // メッセージを表示
+    showMessage('引用内容を投稿フォームに追加しました');
 }
 
 // 編集のキャンセル
